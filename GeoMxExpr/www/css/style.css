@@ -1,0 +1,83 @@
+@font-face {
+        font-family: 'PTSerif';
+        src: url('PTSerif-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+}
+
+html {
+        position: relative;
+        min-height: 100%;
+}
+
+body {
+        color: #04060F;
+        background-color: #FFFFFF;
+        font-family: 'PTSerif', sans-serif;
+        font-size: 18px;
+        font-stretch: normal;
+        font-style: normal;
+        font-variant: normal;
+        font-weight: normal;
+        letter-spacing: 0;
+        line-height: 150%;
+        margin-bottom: 30px;
+        margin-left: 0px;
+        margin-right: 0px;
+        margin-top: 0px;
+        opacity: 1.00;
+        padding-bottom: 0px;
+        padding-top: 0px;
+        text-align: left;
+        text-decoration: none;
+        text-indent: 0px;
+        text-transform: none;
+        -webkit-text-size-adjust: none;
+}
+
+a {
+        color: #04060F;
+        text-decoration: none;
+}
+
+a:hover {
+        color: #477998;
+        text-decoration: none;
+}
+
+div {
+        overflow: visible;
+}
+
+img {
+        border: none;
+}
+
+footer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 30px;
+        background-color: #FFFFFF;
+}
+
+.copyright {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        font-size: 14px;
+        color: #04060F;
+        text-align: center;
+}
+
+.footnote {
+        font-family: 'PTSerif';
+        color: #CE4230;
+        font-size: 16px;
+        font-style: italic;
+}
+
+h2 {
+        color: #CE4230;
+        font-style: bold;
+}
