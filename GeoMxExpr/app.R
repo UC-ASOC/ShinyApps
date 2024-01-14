@@ -28,14 +28,14 @@ ui <- fluidPage(
                                 multiple = FALSE,
                                 accept = c(".rds", ".RDS")
                         ),
-                        helpText(h5("Upload a geomx object, e.g., *Set.GeoMx.rds")),
+                        helpText(h5("Upload a geomx object, e.g., *.GeoMx.RDS")),
                         actionButton(
                                 inputId = "exampleData", 
                                 label = "Example data", 
                                 class = "btn-block",
                                 style='padding:4px; font-size:80%; width:100px'
                         ),
-                        helpText(h5("Load a sub of the Kidney data from the Nanostring Spatial Organ Atlas."))
+                        helpText(h5("Load a subset of the Kidney data from the Nanostring Spatial Organ Atlas."))
                 ),
                 column(
                         width = 5,
@@ -54,7 +54,7 @@ ui <- fluidPage(
                         tabPanel("Heat map", h5("The level of expression across samples."), plotOutput("heatmap"))
                 )
         ),
-        tags$footer( HTML("<footer><div class='copyright'>&copy;2024 GeoMx-Explorer | 🇨🇦 | All Rights Reserved.</div></footer>"))
+        tags$footer( HTML("<footer><div class='copyright'>&copy;2024 GeoMx-Explorer | <a href='https://bit.ly/UC_ASOC' target='_blank'>Applied Spatial Omics Centre</a> | All Rights Reserved.</div></footer>"))
 ) # End of UI
 
 #### #### #### #### #### #### #### #### #### ####
@@ -99,8 +99,10 @@ server <- function(input, output, session) {
                                 exprMat <- assayData(gSet)$vsn
                         } else if (any(names(assayData(gSet)) %in% "q_norm")) {
                                 exprMat <- assayData(gSet)$q_norm
+                                exprMat <- log10(exprMat + 1)
                         } else if (any(names(assayData(gSet)) %in% "exprs")) {
                                 exprMat <- assayData(gSet)$exprs
+                                exprMat <- log10(exprMat + 1)
                         }
                         colnames(exprMat) <- annot$Library
                         
@@ -134,15 +136,20 @@ server <- function(input, output, session) {
                         }
 
                         geneCnt <- length(which(rownames(exprMat) == gene))
+                        orderIdx <- c(1:ncol(exprMat))
                         if (geneCnt > 0) {
                                 geneIdx <- which(rownames(exprMat) == gene)
+                                orderIdx <- order(exprMat[geneIdx, ])
                         }
 
                         par(oma=c(6,0,0,0))
-                        boxplot(exprMat, col=boxcols, pch=20, ylab="Expression", las=3)
+                        boxplot(exprMat[,orderIdx], col=boxcols[orderIdx], pch=20, ylab="Expression", las=3)
                         if (geneCnt > 0) {
-                                points(exprMat[geneIdx, ], col="red", pch=20, cex=2)
-                                legend("topleft", legend=gene, pch=20, col="red", bty="n")
+                                points(exprMat[geneIdx,orderIdx], col="red", pch=20, cex=2)
+                                legend("topright", legend=gene, pch=20, col="red", bty="n")
+                                if (!is.null(col)) {
+                                        legend("topleft", legend=names(col), fill=col, bty="n")
+                                }
                         } else {
                                 mtext("Check your gene symbol(s)", side=3, line=1)
                         }
@@ -164,8 +171,10 @@ server <- function(input, output, session) {
                                 exprMat <- assayData(gSet)$vsn
                         } else if (any(names(assayData(gSet)) %in% "q_norm")) {
                                 exprMat <- assayData(gSet)$q_norm
+                                exprMat <- log10(exprMat + 1)
                         } else if (any(names(assayData(gSet)) %in% "exprs")) {
 				exprMat <- assayData(gSet)$exprs
+                                exprMat <- log10(exprMat + 1)
 			}
                         colnames(exprMat) <- annot$Library
 
@@ -232,6 +241,76 @@ server <- function(input, output, session) {
                                                         Sample = sampleCols,
                                                         Region = regionCols,
                                                         Area = colorRamp2(c(min(annot$area), max(annot$area)), c("white", "blue"))
+                                                ),
+                                                annotation_legend_param = list(
+                                                        Area = list(title = "Area (micrometer^2)")
+                                                )
+                                        )
+                                } else if (tag == "UC_mBackbone2023") {
+                                        modelOrder <- config$Model$Name
+                                        modelCols <- config$Model$Color
+                                        names(modelCols) <- modelOrder
+                                        
+                                        ageOrder <- config$Age$Name
+                                        ageCols <- config$Age$Color
+                                        names(ageCols) <- ageOrder
+
+                                        regionOrder <- config$Region$Name
+                                        regionCols <- config$Region$Color
+                                        names(regionCols) <- regionOrder
+
+                                        topAnnotation <- ComplexHeatmap::HeatmapAnnotation(
+                                                df = data.frame(
+                                                        Model = factor(annot$Model, levels = modelOrder),
+                                                        Age = factor(annot$Age, levels = ageOrder),
+                                                        Region = factor(annot$Region, levels = regionOrder),
+                                                        Area = annot$area,
+                                                        Nuclei = annot$nuclei
+                                                ),
+                                                col = list(
+                                                        Model = modelCols,
+                                                        Age = ageCols,
+                                                        Region = regionCols,
+                                                        Area = colorRamp2(c(min(annot$area), max(annot$area)), c("white", "grey50")),
+                                                        Nuclei = colorRamp2(c(min(annot$nuclei), max(annot$nuclei)), c("white", "blue"))
+                                                ),
+                                                annotation_legend_param = list(
+                                                        Area = list(title = "Area (micrometer^2)")
+                                                )
+                                        )
+                                } else if (tag == "UC_Liver2023") {
+                                        slideOrder <- config$Slide$Name
+                                        slideCols <- config$Slide$Color
+                                        names(slideCols) <- slideOrder
+                                        
+                                        patientOrder <- config$Patient$Name
+                                        patientCols <- config$Patient$Color
+                                        names(patientCols) <- patientOrder
+
+                                        sexOrder <- config$Sex$Name
+                                        sexCols <- config$Sex$Color
+                                        names(sexCols) <- sexOrder
+
+                                        segmentOrder <- config$Segment$Name
+                                        segmentCols <- config$Segment$Color
+                                        names(segmentCols) <- segmentOrder
+
+                                        topAnnotation <- ComplexHeatmap::HeatmapAnnotation(
+                                                df = data.frame(
+                                                        Slide = factor(annot$Slide, levels = slideOrder),
+                                                        Patient = factor(annot$Patient, levels = patientOrder),
+                                                        Sex = factor(annot$Sex, levels = sexOrder),
+                                                        Segment = factor(annot$Segment, levels = segmentOrder),
+                                                        Area = annot$area,
+                                                        Nuclei = annot$nuclei
+                                                ),
+                                                col = list(
+                                                        Slide = slideCols,
+                                                        Patient = patientCols,
+                                                        Sex = sexCols,
+                                                        Segment = segmentCols,
+                                                        Area = colorRamp2(c(min(annot$area), max(annot$area)), c("white", "grey50")),
+                                                        Nuclei = colorRamp2(c(min(annot$nuclei), max(annot$nuclei)), c("white", "blue"))
                                                 ),
                                                 annotation_legend_param = list(
                                                         Area = list(title = "Area (micrometer^2)")
